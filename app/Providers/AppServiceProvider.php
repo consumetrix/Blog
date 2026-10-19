@@ -15,6 +15,7 @@ class AppServiceProvider extends ServiceProvider
     {
         Gate::define('edit-content', fn (User $user) => $user->canEdit());
         Gate::define('manage-users', fn (User $user) => $user->isAdmin());
+        Gate::define('manage-settings', fn (User $user) => $user->isAdmin());
 
         View::composer('*', function ($view) {
             $view->with('site', [

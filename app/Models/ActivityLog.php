@@ -26,6 +26,7 @@ class ActivityLog extends Model
         'upload.created' => 'uploaded the image',
         'media.updated' => 'updated the image details for',
         'media.deleted' => 'deleted the image',
+        'settings.saved' => 'changed the settings:',
         'user.created' => 'added the user',
         'user.updated' => 'updated the user',
         'user.deleted' => 'deleted the user',
@@ -35,6 +36,7 @@ class ActivityLog extends Model
     public const AREAS = [
         'posts' => ['label' => 'Posts', 'prefixes' => ['post.']],
         'media' => ['label' => 'Media', 'prefixes' => ['upload.', 'media.']],
+        'settings' => ['label' => 'Settings', 'prefixes' => ['settings.']],
         'users' => ['label' => 'Users', 'prefixes' => ['user.']],
         'auth' => ['label' => 'Sign-ins', 'prefixes' => ['auth.']],
     ];
@@ -125,6 +127,7 @@ class ActivityLog extends Model
         return match (true) {
             $exists('post') => route('dashboard.posts.edit', $p['post']),
             $exists('media') => route('dashboard.media.index', ['media' => $p['media']]),
+            str_starts_with($this->action, 'settings.') => route('dashboard.settings'),
             default => null,
         };
     }

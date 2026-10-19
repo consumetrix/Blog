@@ -37,6 +37,11 @@
                     <a href="{{ route('dashboard.media.index') }}" @if (request()->routeIs('dashboard.media.*')) aria-current="page" @endif>
                         <x-dash.icon name="media" /><span>Media</span><span class="dash-side__count">{{ $navCounts['media'] ?? 0 }}</span>
                     </a>
+                    @can('manage-settings')
+                        <a href="{{ route('dashboard.settings') }}" @if (request()->routeIs('dashboard.settings*')) aria-current="page" @endif>
+                            <x-dash.icon name="settings" /><span>Settings</span>
+                        </a>
+                    @endcan
                     @can('manage-users')
                         <span class="dash-side__group">Admin</span>
                         <a href="{{ route('dashboard.users.index') }}" @if (request()->routeIs('dashboard.users.*')) aria-current="page" @endif>

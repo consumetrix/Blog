@@ -1,0 +1,28 @@
+# Paths rsync never uploads and, with --delete, never removes from the server.
+
+# Not needed on the server
+/.git/
+/.github/
+/node_modules/
+/tests/
+/docs/
+/.phpunit.cache/
+/.phpunit.result.cache
+
+# Server-only state: settings, database, uploads, logs, sessions
+/.env
+/.env.backup
+/.env.production
+/database/*.sqlite*
+/storage/
+/public/storage
+/public/hot
+
+# Written by cPanel: PHP version handler and ini (MultiPHP), SSL validation, error logs
+/public/.user.ini
+/public/php.ini
+
+/.user.ini
+/public/.well-known/
+/public/cgi-bin/
+error_log

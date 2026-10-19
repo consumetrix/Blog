@@ -1,0 +1,151 @@
+name: Deploy
+
+# Every push to main is tested, built and synced to the cPanel staging site (eugeneagben.com, cPanel
+# user afobejegene) over SSH, the same way as the Consumetrix site.
+# Secrets: SSH_HOST, SSH_USER, DEPLOY_PATH, SSH_PRIVATE_KEY (optional SSH_PORT, variable PHP_BIN).
+# DEPLOY_PATH must be this blog's own folder (public_html), not the Consumetrix site's.
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-staging
+  cancel-in-progress: false
+
+jobs:
+  # ─── Build & Test (shared) ──────────────────────────────────────────────────
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: mbstring, intl, pdo_sqlite, sqlite3, gd, fileinfo, zip
+          coverage: none
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: |
+          composer install --no-interaction --prefer-dist --no-progress
+          npm ci
+
+      - name: Build assets
+        run: npm run build
+
+      - name: Run tests
+        run: |
+          cp .env.example .env
+          php artisan key:generate
+          php artisan test
+          rm .env
+
+      - name: Production dependencies only
+        run: composer install --no-dev --optimize-autoloader --no-interaction --prefer-dist --no-progress
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: built-app
+          include-hidden-files: true
+          path: |
+            .
+            !.git
+            !node_modules
+          retention-days: 1
+
+  deploy-staging:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: staging
+      url: https://eugeneagben.com
+    env:
+      SSH_HOST: ${{ secrets.SSH_HOST }}
+      SSH_PORT: ${{ secrets.SSH_PORT || '22' }}
+      SSH_USER: ${{ secrets.SSH_USER }}
+      DEPLOY_PATH: ${{ secrets.DEPLOY_PATH }}
+      PHP_BIN: ${{ vars.PHP_BIN || 'php' }}
+
+    steps:
+      - name: Download build artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: built-app
+
+      - name: Check deploy settings
+        id: settings
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+        run: |
+          if [ -z "$SSH_PRIVATE_KEY" ] || [ -z "$SSH_HOST" ] || [ -z "$SSH_USER" ] || [ -z "$DEPLOY_PATH" ]; then
+            echo "::warning::Tests passed, but nothing was deployed to staging: add SSH_PRIVATE_KEY, SSH_HOST, SSH_USER and DEPLOY_PATH secrets."
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "ready=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Set up SSH
+        if: steps.settings.outputs.ready == 'true'
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+        run: |
+          mkdir -p ~/.ssh && chmod 700 ~/.ssh
+          key=$(printf '%s\n' "$SSH_PRIVATE_KEY" | tr -d '\r' | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//' -e '/^$/d')
+          if [ "$(printf '%s\n' "$key" | wc -l)" -le 1 ]; then
+            body=$(printf '%s' "$key" | sed -e 's/.*-----BEGIN OPENSSH PRIVATE KEY-----//' -e 's/-----END OPENSSH PRIVATE KEY-----.*//' | tr ' ' '\n' | sed '/^$/d')
+            key=$(printf '%s\n%s\n%s' '-----BEGIN OPENSSH PRIVATE KEY-----' "$body" '-----END OPENSSH PRIVATE KEY-----')
+          fi
+          printf '%s\n' "$key" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          if ! ssh-keygen -y -f ~/.ssh/deploy_key > /tmp/deploy_key.pub 2>/dev/null; then
+            echo "::error::SSH_PRIVATE_KEY is not a valid private key. Paste everything from -----BEGIN OPENSSH PRIVATE KEY----- to -----END OPENSSH PRIVATE KEY----- (both lines included), not the .pub file."
+            exit 1
+          fi
+          echo "Deploy key fingerprint: $(ssh-keygen -lf /tmp/deploy_key.pub)"
+          cp .github/deploy/known_hosts ~/.ssh/known_hosts
+          cat > ~/.ssh/config <<EOF
+          Host deploy
+            HostName ${SSH_HOST}
+            Port ${SSH_PORT}
+            User ${SSH_USER}
+            IdentityFile ~/.ssh/deploy_key
+            IdentitiesOnly yes
+            StrictHostKeyChecking yes
+          EOF
+          ssh deploy "test -d '${DEPLOY_PATH}'" || { echo "::error::Cannot reach ${DEPLOY_PATH} on the staging server. Check SSH_HOST, SSH_USER, DEPLOY_PATH and the deploy key."; exit 1; }
+          ssh deploy "test -f '${DEPLOY_PATH}/.env'" || { echo "::error::${DEPLOY_PATH}/.env is missing. Create the server .env first (database, APP_KEY, APP_URL); the deploy never uploads it."; exit 1; }
+
+      - name: Maintenance mode on
+        id: down
+        if: steps.settings.outputs.ready == 'true'
+        run: ssh deploy "cd '${DEPLOY_PATH}' && { [ ! -f artisan ] || ${PHP_BIN} artisan down --retry=15; }"
+
+      - name: Upload files
+        if: steps.settings.outputs.ready == 'true'
+        run: rsync -az --delete --exclude-from=.github/deploy/exclude.txt -e ssh ./ "deploy:${DEPLOY_PATH}/"
+
+      - name: Migrate and cache
+        if: steps.settings.outputs.ready == 'true'
+        run: |
+          ssh deploy "set -e
+            cd '${DEPLOY_PATH}'
+            ${PHP_BIN} artisan migrate --force
+            ${PHP_BIN} artisan storage:link > /dev/null 2>&1 || true
+            ${PHP_BIN} artisan optimize"
+
+      - name: Maintenance mode off
+        if: always() && steps.down.outcome == 'success'
+        run: ssh deploy "cd '${DEPLOY_PATH}' && ${PHP_BIN} artisan up"
+
+      - name: Clear the NGINX cache
+        if: always() && steps.down.outcome == 'success'
+        run: ssh deploy "uapi NginxCaching clear_cache > /dev/null 2>&1 || true"

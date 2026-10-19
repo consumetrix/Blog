@@ -4,6 +4,7 @@ use App\Http\Controllers\Dashboard\ActivityController;
 use App\Http\Controllers\Dashboard\AuthController;
 use App\Http\Controllers\Dashboard\MediaController;
 use App\Http\Controllers\Dashboard\PostController as DashboardPostController;
+use App\Http\Controllers\Dashboard\SettingsController;
 use App\Http\Controllers\Dashboard\UserController;
 use App\Http\Controllers\PostController;
 use App\Http\Controllers\RobotsController;
@@ -44,6 +45,12 @@ Route::middleware('auth')->prefix('dashboard')->group(function () {
         Route::delete('/media/{media}', [MediaController::class, 'destroy'])->name('dashboard.media.destroy');
 
         Route::resource('posts', DashboardPostController::class)->except(['index', 'show'])->names('dashboard.posts');
+    });
+
+    // Settings change what every visitor sees, so they are for admins.
+    Route::middleware('can:manage-settings')->group(function () {
+        Route::get('/settings', [SettingsController::class, 'edit'])->name('dashboard.settings');
+        Route::put('/settings', [SettingsController::class, 'update'])->name('dashboard.settings.update');
     });
 
     Route::middleware('can:manage-users')->group(function () {
