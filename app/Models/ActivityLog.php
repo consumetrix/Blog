@@ -23,6 +23,9 @@ class ActivityLog extends Model
         'post.created' => 'created the post',
         'post.updated' => 'updated the post',
         'post.deleted' => 'deleted the post',
+        'category.created' => 'added the category',
+        'category.updated' => 'updated the category',
+        'category.deleted' => 'deleted the category',
         'upload.created' => 'uploaded the image',
         'media.updated' => 'updated the image details for',
         'media.deleted' => 'deleted the image',
@@ -35,6 +38,7 @@ class ActivityLog extends Model
     /** Filter on the Activity screen => action prefixes. */
     public const AREAS = [
         'posts' => ['label' => 'Posts', 'prefixes' => ['post.']],
+        'categories' => ['label' => 'Categories', 'prefixes' => ['category.']],
         'media' => ['label' => 'Media', 'prefixes' => ['upload.', 'media.']],
         'settings' => ['label' => 'Settings', 'prefixes' => ['settings.']],
         'users' => ['label' => 'Users', 'prefixes' => ['user.']],
@@ -90,6 +94,7 @@ class ActivityLog extends Model
     /** Property key => model the id in it points to. */
     public const LINKED = [
         'post' => Post::class,
+        'category' => Category::class,
         'media' => Media::class,
     ];
 
@@ -125,6 +130,7 @@ class ActivityLog extends Model
             : isset($existing[$key][$p[$key]]));
 
         return match (true) {
+            $exists('category') => route('dashboard.categories.edit', $p['category']),
             $exists('post') => route('dashboard.posts.edit', $p['post']),
             $exists('media') => route('dashboard.media.index', ['media' => $p['media']]),
             str_starts_with($this->action, 'settings.') => route('dashboard.settings'),

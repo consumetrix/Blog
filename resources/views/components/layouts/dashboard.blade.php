@@ -34,6 +34,9 @@
                     <a href="{{ route('dashboard.posts.index') }}" @if (request()->routeIs('dashboard', 'dashboard.posts.*')) aria-current="page" @endif>
                         <x-dash.icon name="posts" /><span>Posts</span><span class="dash-side__count">{{ $navCounts['posts'] ?? 0 }}</span>
                     </a>
+                    <a href="{{ route('dashboard.categories.index') }}" @if (request()->routeIs('dashboard.categories.*')) aria-current="page" @endif>
+                        <x-dash.icon name="stack" /><span>Categories</span><span class="dash-side__count">{{ $navCounts['categories'] ?? 0 }}</span>
+                    </a>
                     <a href="{{ route('dashboard.media.index') }}" @if (request()->routeIs('dashboard.media.*')) aria-current="page" @endif>
                         <x-dash.icon name="media" /><span>Media</span><span class="dash-side__count">{{ $navCounts['media'] ?? 0 }}</span>
                     </a>

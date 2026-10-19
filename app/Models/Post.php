@@ -5,23 +5,16 @@ namespace App\Models;
 use App\Support\Html;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
 class Post extends Model
 {
-    /** Categories. Keys are stored and used in ?type= filters. */
-    public const TYPES = [
-        'case-study' => 'Case Study',
-        'article' => 'Article',
-        'analysis' => 'Analysis',
-        'field-notes' => 'Field Notes',
-    ];
-
     public const STATUSES = ['draft' => 'Draft', 'published' => 'Published'];
 
     protected $fillable = [
-        'slug', 'type', 'title', 'excerpt', 'body', 'image_path', 'image_alt',
+        'slug', 'category_id', 'title', 'excerpt', 'body', 'image_path', 'image_alt',
         'status', 'published_at',
     ];
 
@@ -30,6 +23,11 @@ class Post extends Model
         return [
             'published_at' => 'datetime',
         ];
+    }
+
+    public function category(): BelongsTo
+    {
+        return $this->belongsTo(Category::class);
     }
 
     protected static function booted(): void
@@ -81,7 +79,7 @@ class Post extends Model
 
     public function typeLabel(): string
     {
-        return self::TYPES[$this->type] ?? Str::headline($this->type);
+        return $this->category?->name ?? 'Uncategorised';
     }
 
     public function imageUrl(): ?string

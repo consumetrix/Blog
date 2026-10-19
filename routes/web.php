@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Dashboard\ActivityController;
 use App\Http\Controllers\Dashboard\AuthController;
+use App\Http\Controllers\Dashboard\CategoryController;
 use App\Http\Controllers\Dashboard\MediaController;
 use App\Http\Controllers\Dashboard\PostController as DashboardPostController;
 use App\Http\Controllers\Dashboard\SettingsController;
@@ -36,6 +37,7 @@ Route::middleware('auth')->prefix('dashboard')->group(function () {
     Route::get('/recovery-codes', [AuthController::class, 'recoveryCodes'])->name('dashboard.recovery-codes');
 
     Route::get('/posts', [DashboardPostController::class, 'index'])->name('dashboard.posts.index');
+    Route::get('/categories', [CategoryController::class, 'index'])->name('dashboard.categories.index');
     Route::get('/media', [MediaController::class, 'index'])->name('dashboard.media.index');
     Route::get('/media/{media}/download', [MediaController::class, 'download'])->whereNumber('media')->name('dashboard.media.download');
 
@@ -45,6 +47,7 @@ Route::middleware('auth')->prefix('dashboard')->group(function () {
         Route::delete('/media/{media}', [MediaController::class, 'destroy'])->name('dashboard.media.destroy');
 
         Route::resource('posts', DashboardPostController::class)->except(['index', 'show'])->names('dashboard.posts');
+        Route::resource('categories', CategoryController::class)->except(['index', 'show', 'create'])->names('dashboard.categories');
     });
 
     // Settings change what every visitor sees, so they are for admins.

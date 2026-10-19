@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Models\Category;
 use App\Models\Media;
 use App\Models\Post;
 use App\Models\User;
@@ -30,6 +31,7 @@ class AppServiceProvider extends ServiceProvider
         View::composer('components.layouts.dashboard', function ($view) {
             $view->with('navCounts', auth()->check() ? [
                 'posts' => Post::count(),
+                'categories' => Category::count(),
                 'media' => Media::count(),
                 'users' => User::count(),
             ] : []);

@@ -33,16 +33,19 @@
     </section>
 
     <nav class="dash-tabs" aria-label="Filter by category">
-        <a href="{{ route('dashboard.posts.index') }}" @if (! $type) aria-current="page" @endif>All <span>{{ $counts->sum() }}</span></a>
-        @foreach (\App\Models\Post::TYPES as $key => $label)
-            <a href="{{ route('dashboard.posts.index', ['type' => $key]) }}" @if ($type === $key) aria-current="page" @endif>{{ $label }} <span>{{ $counts[$key] ?? 0 }}</span></a>
+        <a href="{{ route('dashboard.posts.index') }}" @if (! $category) aria-current="page" @endif>All <span>{{ $counts->sum() }}</span></a>
+        @foreach ($categories as $item)
+            <a href="{{ route('dashboard.posts.index', ['category' => $item->slug]) }}" @if ($category?->is($item)) aria-current="page" @endif><span class="cat-dot" style="background: {{ $item->dot() }}"></span> {{ $item->name }} <span>{{ $counts[$item->id] ?? 0 }}</span></a>
         @endforeach
+        @if ($uncategorised)
+            <span class="dash-tabs__note" title="Posts with no category">No category <span>{{ $uncategorised }}</span></span>
+        @endif
     </nav>
 
     @if ($posts->isEmpty())
         <div class="dash-empty">
             <span class="dash-empty__icon"><x-dash.icon name="posts" /></span>
-            <h2>{{ $type ? 'Nothing in this category yet' : 'No posts yet' }}</h2>
+            <h2>{{ $category ? 'Nothing in this category yet' : 'No posts yet' }}</h2>
             <p>Posts appear on the blog once they are published.</p>
             @can('edit-content')
                 <a class="dash-btn dash-btn--primary" href="{{ route('dashboard.posts.create') }}"><x-dash.icon name="plus" /> Write a post</a>
@@ -64,7 +67,7 @@
                     <div class="dash-post__body">
                         <div class="dash-post__meta">
                             <span class="dash-pill dash-pill--{{ $state }}">{{ $stateLabels[$state] }}</span>
-                            <span class="dash-post__type">{{ $post->typeLabel() }}</span>
+                            <span class="dash-post__type"><span class="cat-dot" style="background: {{ $post->category?->dot() ?? '#9498A0' }}"></span> {{ $post->typeLabel() }}</span>
                             @if ($post->published_at)
                                 <span class="dash-post__date">
                                     @if ($state === 'scheduled')<x-dash.icon name="calendar" />@endif

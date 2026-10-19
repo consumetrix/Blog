@@ -11,8 +11,8 @@
                     <h2>Read</h2>
                     <ul>
                         <li><a href="{{ route('home') }}">All posts</a></li>
-                        @foreach (\App\Models\Post::TYPES as $key => $label)
-                            <li><a href="{{ route('home', ['type' => $key]) }}">{{ $label }}</a></li>
+                        @foreach (\App\Models\Category::ordered()->get() as $item)
+                            <li><a href="{{ route('home', ['category' => $item->slug]) }}">{{ $item->name }}</a></li>
                         @endforeach
                         <li><a href="{{ route('feed') }}">RSS feed</a></li>
                     </ul>

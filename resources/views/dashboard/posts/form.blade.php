@@ -2,7 +2,7 @@
     $editing = $post->exists;
     $publishedAt = old('published_at', $post->published_at?->format('Y-m-d\TH:i'));
     $status = old('status', $post->status);
-    $type = old('type', $post->type);
+    $categoryId = (string) old('category_id', $post->category_id);
     $state = $editing ? $post->state() : null;
     $stateLabels = ['live' => 'Live', 'scheduled' => 'Scheduled', 'draft' => 'Draft'];
 @endphp
@@ -87,12 +87,13 @@
                 </section>
 
                 <section class="dash-card" aria-labelledby="category-title">
-                    <h2 class="dash-card__title" id="category-title">Category</h2>
+                    <h2 class="dash-card__title" id="category-title">Category <a class="dash-link" href="{{ route('dashboard.categories.index') }}" style="font-weight: 400; font-size: 0.8125rem">Manage</a></h2>
                     <fieldset class="dash-chips">
                         <legend class="visually-hidden">Category</legend>
-                        @foreach (\App\Models\Post::TYPES as $key => $label)
-                            <label><input type="radio" name="type" value="{{ $key }}" @checked($type === $key)><span>{{ $label }}</span></label>
+                        @foreach ($categories as $item)
+                            <label><input type="radio" name="category_id" value="{{ $item->id }}" @checked($categoryId === (string) $item->id)><span><span class="cat-dot" style="background: {{ $item->dot() }}"></span> {{ $item->name }}</span></label>
                         @endforeach
+                        <label><input type="radio" name="category_id" value="" @checked($categoryId === '')><span>None</span></label>
                     </fieldset>
                 </section>
 

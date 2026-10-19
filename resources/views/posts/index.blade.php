@@ -4,15 +4,19 @@
     <section class="section" aria-label="Posts">
         <div class="container">
             <ul class="filter-tags" aria-label="Filter by category">
-                <li><a href="{{ route('home') }}" @if (! $type) aria-current="true" @endif>All <span class="filter-tags__count">{{ $total }}</span></a></li>
-                @foreach (\App\Models\Post::TYPES as $key => $label)
+                <li><a href="{{ route('home') }}" @if (! $category) aria-current="true" @endif>All <span class="filter-tags__count">{{ $total }}</span></a></li>
+                @foreach ($categories as $item)
                     <li>
-                        <a href="{{ route('home', ['type' => $key]) }}" @if ($type === $key) aria-current="true" @endif>
-                            {{ $label }} <span class="filter-tags__count">{{ $counts[$key] ?? 0 }}</span>
+                        <a href="{{ route('home', ['category' => $item->slug]) }}" @if ($category?->is($item)) aria-current="true" @endif>
+                            <span class="cat-dot" style="background: {{ $item->dot() }}"></span> {{ $item->name }} <span class="filter-tags__count">{{ $counts[$item->id] ?? 0 }}</span>
                         </a>
                     </li>
                 @endforeach
             </ul>
+
+            @if ($category?->description)
+                <p class="muted" style="margin-top: var(--space-lg); max-width: 40em">{{ $category->description }}</p>
+            @endif
 
             @forelse ($posts as $post)
                 @php($number = str_pad($posts->firstItem() + $loop->index, 2, '0', STR_PAD_LEFT))

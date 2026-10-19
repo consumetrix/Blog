@@ -37,7 +37,7 @@ class PostRequest extends FormRequest
         return [
             'title' => ['required', 'string', 'max:200'],
             'slug' => ['nullable', 'string', 'max:190', 'alpha_dash', Rule::unique('posts', 'slug')->ignore($post)],
-            'type' => ['required', Rule::in(array_keys(Post::TYPES))],
+            'category_id' => ['nullable', 'integer', Rule::exists('categories', 'id')],
             'excerpt' => ['nullable', 'string', 'max:300'],
             'body' => ['required', 'string', 'max:60000'],
             'image' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:4096', 'dimensions:min_width=600'],

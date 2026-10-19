@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Category;
 use App\Models\Post;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
@@ -14,36 +15,42 @@ class PostController extends Controller
 {
     public function index(Request $request): View
     {
-        $type = $request->query('type');
-        $type = is_string($type) && isset(Post::TYPES[$type]) ? $type : null;
+        $counts = Post::visible()->get(['id', 'category_id'])->countBy('category_id');
+        $categories = Category::ordered()->get()->filter(fn (Category $c) => $counts->get($c->id, 0) > 0)->values();
 
-        $all = Post::visible()->get(['id', 'type']);
+        $slug = $request->query('category');
+        $category = is_string($slug) ? $categories->firstWhere('slug', $slug) : null;
+
         $posts = Post::visible()
-            ->when($type, fn ($q) => $q->where('type', $type))
+            ->with('category')
+            ->when($category, fn ($q) => $q->where('category_id', $category->id))
             ->paginate((int) config('blog.per_page'))
             ->withQueryString();
 
         return view('posts.index', [
             'posts' => $posts,
-            'type' => $type,
-            'counts' => $all->countBy('type'),
-            'total' => $all->count(),
+            'categories' => $categories,
+            'category' => $category,
+            'counts' => $counts,
+            'total' => $counts->sum(),
         ]);
     }
 
     public function show(string $slug): View
     {
-        $post = Post::visible()->where('slug', $slug)->firstOrFail();
+        $post = Post::visible()->with('category')->where('slug', $slug)->firstOrFail();
 
         return view('posts.show', [
             'post' => $post,
-            'related' => Post::visible()->where('type', $post->type)->whereKeyNot($post->id)->limit(3)->get(),
+            'related' => $post->category_id
+                ? Post::visible()->with('category')->where('category_id', $post->category_id)->whereKeyNot($post->id)->limit(3)->get()
+                : collect(),
         ]);
     }
 
     public function feed(): Response
     {
-        $posts = Post::visible()->limit((int) config('blog.feed_limit'))->get();
+        $posts = Post::visible()->with('category')->limit((int) config('blog.feed_limit'))->get();
 
         return response()
             ->view('feed', [

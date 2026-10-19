@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Dashboard;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\PostRequest;
 use App\Models\ActivityLog;
+use App\Models\Category;
 use App\Models\Post;
 use App\Support\MediaLibrary;
 use Illuminate\Http\RedirectResponse;
@@ -15,20 +16,24 @@ class PostController extends Controller
 {
     public function index(Request $request): View
     {
-        $type = $request->query('type');
-        $type = is_string($type) && isset(Post::TYPES[$type]) ? $type : null;
+        $categories = Category::ordered()->get();
+        $slug = $request->query('category');
+        $category = is_string($slug) ? $categories->firstWhere('slug', $slug) : null;
 
-        $all = Post::query()->get(['id', 'type', 'status', 'published_at']);
+        $all = Post::query()->get(['id', 'category_id', 'status', 'published_at']);
 
         return view('dashboard.posts.index', [
             'posts' => Post::query()
-                ->when($type, fn ($q) => $q->where('type', $type))
+                ->with('category')
+                ->when($category, fn ($q) => $q->where('category_id', $category->id))
                 ->orderByRaw('published_at IS NULL DESC')
                 ->orderByDesc('published_at')
                 ->orderByDesc('id')
                 ->get(),
-            'type' => $type,
-            'counts' => $all->countBy('type'),
+            'categories' => $categories,
+            'category' => $category,
+            'counts' => $all->countBy('category_id'),
+            'uncategorised' => $all->whereNull('category_id')->count(),
             'stats' => [
                 'live' => $all->filter(fn (Post $p) => $p->state() === 'live')->count(),
                 'scheduled' => $all->filter(fn (Post $p) => $p->state() === 'scheduled')->count(),
@@ -40,7 +45,8 @@ class PostController extends Controller
     public function create(): View
     {
         return view('dashboard.posts.form', [
-            'post' => new Post(['type' => 'article', 'status' => 'draft']),
+            'post' => new Post(['category_id' => Category::ordered()->value('id'), 'status' => 'draft']),
+            'categories' => Category::ordered()->get(),
         ]);
     }
 
@@ -56,6 +62,7 @@ class PostController extends Controller
     {
         return view('dashboard.posts.form', [
             'post' => $post,
+            'categories' => Category::ordered()->get(),
         ]);
     }
 
@@ -71,7 +78,7 @@ class PostController extends Controller
         $image = $post->image_path;
         $post->delete();
         MediaLibrary::release($image);
-        ActivityLog::record('post.deleted', $post->title, ['type' => $post->type]);
+        ActivityLog::record('post.deleted', $post->title, ['category' => $post->category?->name]);
 
         return redirect()->route('dashboard.posts.index')->with('status', 'Post deleted.');
     }
