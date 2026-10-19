@@ -20,11 +20,4 @@
 /vendor
 Homestead.json
 Homestead.yaml
-/storage/framework/views/*
-/storage/framework/cache/*
-/storage/framework/sessions/*
-/storage/framework/testing/*
-/storage/logs/*
-/storage/app/public/*
 /database/*.sqlite
-/bootstrap/cache/*.php
