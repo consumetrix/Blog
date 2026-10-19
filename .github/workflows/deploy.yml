@@ -127,7 +127,10 @@ jobs:
       - name: Maintenance mode on
         id: down
         if: steps.settings.outputs.ready == 'true'
-        run: ssh deploy "cd '${DEPLOY_PATH}' && { [ ! -f artisan ] || ${PHP_BIN} artisan down --retry=15; }"
+        run: |
+          ssh deploy "cd '${DEPLOY_PATH}'
+            mkdir -p storage/framework/sessions storage/framework/views storage/framework/cache/data storage/logs storage/app/public bootstrap/cache
+            [ ! -f artisan ] || ${PHP_BIN} artisan down --retry=15"
 
       - name: Upload files
         if: steps.settings.outputs.ready == 'true'
