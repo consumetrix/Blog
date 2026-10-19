@@ -1,0 +1,109 @@
+/* Consumetrix design tokens. Palette values from the Brand Guidelines v1.0 (teal inferred from document usage). */
+
+:root {
+    /* Brand palette */
+    --navy-obsidian: #070F20;
+    --navy: #132A52;
+    --navy-deep: #0A162E;
+    --paper: #F7F4EC;
+    --slate: #5B5F66;
+    --gold: #C79A45;
+    --gold-light: #E4C77E;
+    --gold-glow: rgba(199, 154, 69, 0.22);
+    --teal: #1F7A78;
+    --teal-light: #2BA3A0;
+    --teal-glow: rgba(31, 122, 120, 0.28);
+    --mist: #9498A0;
+    --ink: #161616;
+    --white: #FFFFFF;
+    --error: #B4432E;
+
+    /* Elevation & Glassmorphism */
+    --glass-bg: rgba(10, 22, 46, 0.85);
+    --glass-border: rgba(247, 244, 236, 0.09);
+    --glass-blur: 16px;
+    --card-shadow: 0 12px 36px rgba(0, 0, 0, 0.28);
+    --card-shadow-hover: 0 18px 48px rgba(0, 0, 0, 0.42);
+
+    /* Type */
+    --font-display: Merriweather, Georgia, "Times New Roman", serif;
+    --font-body: Calibri, Carlito, "Segoe UI", system-ui, sans-serif;
+    --font-mono: "Space Mono", Consolas, "SFMono-Regular", Menlo, monospace;
+
+    --text-xs: 0.75rem;
+    --text-sm: 1rem;
+    --text-base: 1.125rem;
+    --text-lg: clamp(1.1875rem, 1.1rem + 0.4vw, 1.375rem);
+    --h4: clamp(1.125rem, 1.05rem + 0.3vw, 1.25rem);
+    --h3: clamp(1.25rem, 1.1rem + 0.6vw, 1.5rem);
+    --h2: clamp(1.875rem, 1.3rem + 2.2vw, 3rem);
+    --h1: clamp(2.375rem, 1.5rem + 3.6vw, 4.25rem);
+    --display: clamp(2.875rem, 1.3rem + 6.4vw, 6.75rem);
+    --quote: clamp(1.5rem, 1rem + 1.9vw, 2.5rem);
+
+    /* Space */
+    --space-2xs: 0.25rem;
+    --space-xs: 0.5rem;
+    --space-sm: 0.75rem;
+    --space-md: 1rem;
+    --space-lg: 1.5rem;
+    --space-xl: 2rem;
+    --space-2xl: 3rem;
+    --space-3xl: 4.5rem;
+    --space-4xl: 6rem;
+    --section-y: clamp(4.5rem, 2.5rem + 7vw, 9rem);
+
+    /* Layout */
+    --container: 1240px;
+    --gutter: clamp(1.25rem, 4vw, 3rem);
+    --header-h: 76px;
+    --measure: 40em;
+
+    /* Motion */
+    --ease: cubic-bezier(0.2, 0.7, 0.1, 1);
+    --dur-fast: 160ms;
+    --dur: 320ms;
+    --dur-slow: 700ms;
+
+    /* Grid pattern */
+    --grid-size: 80px;
+}
+
+/* Surfaces set the context every component reads from. */
+.surface-deep,
+.surface-navy {
+    --fg: var(--paper);
+    --fg-strong: var(--white);
+    --fg-muted: rgba(247, 244, 236, 0.74);
+    --label: var(--mist);
+    --rule: rgba(247, 244, 236, 0.14);
+    --rule-strong: rgba(247, 244, 236, 0.3);
+    --accent-text: var(--gold);
+    --accent-soft: var(--gold-light);
+    --accent-line: var(--teal);
+    --focus: var(--gold-light);
+    --panel: rgba(247, 244, 236, 0.045);
+    --grid-line: rgba(247, 244, 236, 0.045);
+    color: var(--fg);
+}
+
+.surface-deep { --bg: var(--navy-deep); background-color: var(--navy-deep); }
+.surface-navy { --bg: var(--navy); background-color: var(--navy); }
+
+.surface-paper {
+    --bg: var(--paper);
+    --fg: var(--navy);
+    --fg-strong: var(--navy-deep);
+    --fg-muted: var(--slate);
+    --label: var(--slate);
+    --rule: rgba(19, 42, 82, 0.14);
+    --rule-strong: rgba(19, 42, 82, 0.32);
+    --accent-text: var(--teal);
+    --accent-soft: var(--teal);
+    --accent-line: var(--teal);
+    --focus: var(--navy);
+    --panel: var(--white);
+    --grid-line: rgba(19, 42, 82, 0.05);
+    background-color: var(--paper);
+    color: var(--fg);
+}

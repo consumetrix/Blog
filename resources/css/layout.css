@@ -1,0 +1,88 @@
+.container {
+    width: 100%;
+    max-width: calc(var(--container) + var(--gutter) * 2);
+    margin-inline: auto;
+    padding-inline: var(--gutter);
+}
+
+.section {
+    position: relative;
+    padding-block: var(--section-y);
+}
+
+.section--tight { padding-block: calc(var(--section-y) * 0.6); }
+
+.section + .section.surface-deep,
+.section.surface-navy + .section.surface-navy { border-top: 1px solid var(--rule); }
+
+.bg-grid {
+    background-image:
+        radial-gradient(ellipse 70% 55% at 50% -8%, rgba(31, 122, 120, 0.22) 0%, transparent 68%),
+        radial-gradient(ellipse 30% 20% at 80% 80%, rgba(199, 154, 69, 0.06) 0%, transparent 60%),
+        linear-gradient(to right, var(--grid-line) 1px, transparent 1px),
+        linear-gradient(to bottom, var(--grid-line) 1px, transparent 1px);
+    background-size: 100% 100%, 100% 100%, var(--grid-size) var(--grid-size), var(--grid-size) var(--grid-size);
+    background-position: center top;
+}
+
+.section-head {
+    display: grid;
+    gap: var(--space-lg);
+    margin-bottom: var(--space-3xl);
+    max-width: 52rem;
+}
+
+.section-head--split {
+    max-width: none;
+    grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+    align-items: end;
+    column-gap: var(--space-3xl);
+}
+
+.section-head--action {
+    max-width: none;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: end;
+    column-gap: var(--space-2xl);
+}
+
+.section-head--action > .stack { max-width: 52rem; }
+
+@media (max-width: 700px) {
+    .section-head--action { grid-template-columns: minmax(0, 1fr); justify-items: start; }
+}
+
+.stack > * + * { margin-top: var(--stack, var(--space-lg)); }
+
+.cluster {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--cluster, var(--space-md));
+}
+
+.split {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: var(--space-3xl);
+    align-items: start;
+}
+
+.split--7-5 { grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); }
+.split--5-7 { grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); }
+.split--center { align-items: center; }
+
+.rule-top {
+    border-top: 1px solid var(--rule-strong);
+    padding-top: var(--space-lg);
+}
+
+@media (max-width: 900px) {
+    .split,
+    .split--7-5,
+    .split--5-7,
+    .section-head--split {
+        grid-template-columns: minmax(0, 1fr);
+        gap: var(--space-2xl);
+    }
+}
